@@ -1,3 +1,2 @@
 #!/bin/bash
-
-echo "TODO: fill in the docker run command"
+docker run -p 5000:5000 --env WANDB_API_KEY=$WANDB_API_KEY flask-service
