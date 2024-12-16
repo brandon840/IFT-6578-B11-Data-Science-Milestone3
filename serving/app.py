@@ -98,8 +98,7 @@ def download_registry_model():
        
     try:
         # Get model from WandB
-        # wandb_client = wandb.Api(api_key=os.environ.get("WANDB_API_KEY"))
-        wandb_client = wandb.Api(api_key="e97652ade79c0b2ba1d9f09a55f13059638bfe7e")
+        wandb_client = wandb.Api(api_key=os.environ.get("WANDB_API_KEY"))
         artifact = wandb_client.artifact(f"{workspace}/{model_name}:{version}")
         artifact.download(root="models/")
 
