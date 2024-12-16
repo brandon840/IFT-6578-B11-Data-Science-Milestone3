@@ -27,13 +27,36 @@ class ServingClient:
         Args:
             X (Dataframe): Input dataframe to submit to the prediction service.
         """
-
-        raise NotImplementedError("TODO: implement this function")
-
+        try:
+            url = self.base_url + "/predict"
+            payload = X.to_json(orient='records')
+            response = requests.post(url, json=json.loads(payload))
+            if response.status_code == 200:
+                predictions = response.json().get("predictions", [])
+                return pd.DataFrame(predictions, columns=["prediction"], index=X.index)
+            else:
+                logger.error(f"Prediction failed: {response.json()}")
+                response.raise_for_status()
+                
+        except Exception as e:
+            logger.error(f"Error in predict: {str(e)}")
+            raise
+        
     def logs(self) -> dict:
         """Get server logs"""
-
-        raise NotImplementedError("TODO: implement this function")
+        try:
+            url = self.base_url + "/logs"
+            response = requests.get(url)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to fetch logs: {response.json()}")
+                response.raise_for_status()
+                
+        except Exception as e:
+            logger.error(f"Error in logs: {str(e)}")
+            raise
+        
 
     def download_registry_model(self, workspace: str, model: str, version: str) -> dict:
         """
@@ -50,5 +73,21 @@ class ServingClient:
             model (str): The model in the Comet ML registry to download
             version (str): The model version to download
         """
-
-        raise NotImplementedError("TODO: implement this function")
+        try:
+            url = self.base_url + "/download_registry_model"
+            payload = {
+                "workspace": workspace,
+                "model": model,
+                "version": version,
+            }
+            
+            response = requests.post(url, json=payload)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to download model: {response.json()}")
+                response.raise_for_status()
+                
+        except Exception as e:
+            logger.error(f"Error in download_registry_model: {str(e)}")
+            raise
