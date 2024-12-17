@@ -1,0 +1,7 @@
+*.csv
+*.log
+*.txt
+*.joblib
+*.pyc
+
+venv/

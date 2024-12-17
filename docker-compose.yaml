@@ -1,11 +1,11 @@
 # docker-compose.yml
 version: '3'
 
-services:
-  serving:
-    build:
-      context: ./
-      dockerfile: ./Dockerfile.serving
+# services:
+#   serving:
+#     build:
+#       context: ./
+#       dockerfile: ./Dockerfile.serving
 #      args:
 #        ARG: <ARG>
 #    image: ift6758/serving:<TAG>
@@ -27,4 +27,25 @@ services:
 ##      OTHER_DOCKER_ENV_VAR = ${OTHER_LOCAL_ENV_VAR}
       
 
-     
+
+services:
+  flask-serving:
+    build:
+      context: ./serving
+      dockerfile: Dockerfile.serving
+    ports:
+      - "5000:5000"
+    environment:
+      - COMET_API_KEY=${COMET_API_KEY}
+    restart: always
+
+  streamlit-app:
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile.streamlit
+    ports:
+      - "8501:8501"
+    depends_on:
+      - flask-serving
+    restart: always
+

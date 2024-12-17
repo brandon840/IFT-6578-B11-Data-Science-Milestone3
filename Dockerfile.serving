@@ -14,6 +14,43 @@ FROM python:3.7
 # Create and cd into /code as your working directory
 WORKDIR /code
 
+# add code, optionally a default model if you want 
+# Copy the application code into the container
+ADD ./serving ./serving
+
+
+# Install the required libraries (dependencies)
+# Assuming requirements.txt is provided in the serving folder
+RUN pip install -r ift6758/ift6758/requirements.txt \
+    && pip install wheel \  
+    && pip install gunicorn
+
+
+# add application
+ADD ./serving/app.py /app.py
+
+
+# Set environment variables (passed at runtime, not embedded)
+ENV COMET_API_KEY=${COMET_API_KEY}
+ENV SERVING_PORT=5000
+
+
+# Use the environment variable correctly
+EXPOSE ${SERVING_PORT}
+
+# TODO: specify default command - this is not required because you can always specify the command
+# either with the docker run command or in the docker-compose file
+
+
+# Default command to run the Gunicorn server
+CMD gunicorn --bind 0.0.0.0:${SERVING_PORT} app:app
+# CMD ["gunicorn", "--bind", "0.0.0.0:${SERVING_PORT}", "app:app"]
+
+
+
+
+
+
 
 # The main docker commands you will find useful:
 # 
@@ -41,17 +78,3 @@ WORKDIR /code
 # https://docs.docker.com/engine/reference/builder/#cmd
 #
 #       CMD <SHELL COMMAND>
-
-
-
-# TODO: add code, optionally a default model if you want 
-
-
-# TODO: install libs
-
-
-# TODO: expose ports (or do this in docker-compose)
-
-
-# TODO: specify default command - this is not required because you can always specify the command
-# either with the docker run command or in the docker-compose file
