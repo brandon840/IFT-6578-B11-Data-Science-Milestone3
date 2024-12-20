@@ -13,7 +13,7 @@ class ServingClient:
         logger.info(f"Initializing client; base URL: {self.base_url}")
 
         if features is None:
-            features = ["distance"]
+            features = ["shot_distance","shot_angle"]
         self.features = features
 
         # any other potential initialization
@@ -29,6 +29,7 @@ class ServingClient:
         """
         try:
             url = self.base_url + "/predict"
+            X = X[self.features]
             payload = X.to_json(orient='records')
             response = requests.post(url, json=json.loads(payload))
             if response.status_code == 200:
