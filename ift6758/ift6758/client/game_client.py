@@ -13,7 +13,7 @@ class GameClient:
     def __init__(self, ip: str = "0.0.0.0", port: int = 5000, game_id = None, tracker_file=None):
         self.base_url = f"http://{ip}:{port}"
         self.game_id = game_id
-        logger.info(f"Initializing game client; base URL: {self.base_url} for game {self.game_id")
+        logger.info(f"Initializing game client; base URL: {self.base_url} for game {self.game_id}")
         
         if os.path.exists(tracker_file):
             self.processed_events = pd.read_csv(tracker_file)

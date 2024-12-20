@@ -125,7 +125,7 @@ def predict():
 
     try:
         # Convert JSON input to DataFrame
-        input_data = pd.DataFrame(json)
+        input_data = pd.read_json(json)
         predictions = model.predict_proba(input_data).tolist() if hasattr(model, "predict_proba") else model.predict(input_data).tolist()
         app.logger.info(f"Predictions made: {predictions}")
         return jsonify({"predictions": predictions})
