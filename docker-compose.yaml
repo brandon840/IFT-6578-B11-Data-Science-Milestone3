@@ -1,30 +1,38 @@
-# docker-compose.yml
-version: '3'
+# version: '3.8'  # It is recommended to use a newer version
 
 services:
   serving:
     build:
-      context: ./
-      dockerfile: ./Dockerfile.serving
-#      args:
-#        ARG: <ARG>
-#    image: ift6758/serving:<TAG>
-#    ports:
-#      - <SERVING_PORT>:<SERVING_PORT>
-#    environment:
-#      DOCKER_ENV_VAR = ${LOCAL_ENV_VAR}
-###### Uncomment below when you're ready to add the final notebook container to your docker compose
-##  streamlit:
-##    build:
-##      context: ./
-##      dockerfile: ./Dockerfile.streamlit
-##      args:
-##        ARG: <ARG>
-##    image: ift6758/streamlit:<TAG>
-##    ports:
-##      - <STREAMLIT_PORT>:<STREAMLIT_PORT>
-##    environment:
-##      OTHER_DOCKER_ENV_VAR = ${OTHER_LOCAL_ENV_VAR}
-      
+      context: ./  # Set the build context to the current directory
+      dockerfile: ./Dockerfile.serving  # Specify the Dockerfile to use for building
+      # args:
+        # If your Dockerfile requires build arguments, you can define them here
+        # For example:
+        # EXAMPLE_ARG: "value"
+    image: ift6758/serving:latest  # Replace <TAG> with a specific tag, e.g., ift6758/serving:v1.0
+    ports:
+      - "8080:8080"  # Replace <SERVING_PORT> with the actual port, e.g., "8080:8080"
+    environment:
+      DOCKER_ENV_VAR: "${LOCAL_ENV_VAR}"  # Use double quotes and ${} to reference the variable
+    volumes:
+      - ./ift6758:/app/ift6758  # Mount the local ./ift6758 directory to /app/ift6758 in the container
+      - ./serving:/app/serving  # Mount the local ./serving directory to /app/serving in the container
+    restart: unless-stopped  # Restart the container unless it is explicitly stopped
 
-     
+  # When ready to add the Streamlit service, uncomment the following and configure it
+  streamlit:
+    build:
+      context: ./  # Set the build context to the current directory
+      dockerfile: ./Dockerfile.streamlit  # Specify the Dockerfile to use for building
+      # args:
+        # If your Dockerfile requires build arguments, you can define them here
+        # For example:
+        # EXAMPLE_ARG: "value"
+    image: ift6758/streamlit:latest  # Replace <TAG> with a specific tag, e.g., ift6758/streamlit:v1.0
+    ports:
+      - "8501:8501"  # Replace <STREAMLIT_PORT> with the actual port, e.g., "8501:8501"
+    environment:
+      OTHER_DOCKER_ENV_VAR: "${OTHER_LOCAL_ENV_VAR}"  # Use double quotes and ${} to reference the variable
+    volumes:
+      - ./streamlit_app.py:/app/streamlit_app.py  # Mount the local streamlit_app.py to /app/streamlit_app.py in the container
+    restart: unless-stopped  # Restart the container unless it is explicitly stopped
