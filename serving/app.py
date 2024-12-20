@@ -13,10 +13,10 @@ from pathlib import Path
 import logging
 from flask import Flask, jsonify, request, abort
 import pandas as pd
+import pickle
 import joblib
 import pickle
 import wandb
-
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 MODEL_FOLDER = os.path.dirname(os.getcwd()) + "/ift6758/ift6758/models/"
@@ -98,6 +98,8 @@ def download_registry_model():
         
        
     try:
+        model_file_joblib = MODEL_FOLDER + f"{model_name}.joblib"
+
         # Get model from WandB
         model_file_joblib = MODEL_FOLDER + f"{model_name}.joblib"
         wandb_client = wandb.Api(api_key=os.environ.get("WANDB_API_KEY"))
