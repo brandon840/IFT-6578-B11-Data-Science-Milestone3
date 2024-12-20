@@ -15,11 +15,11 @@ from flask import Flask, jsonify, request, abort
 import pandas as pd
 import pickle
 import joblib
+import pickle
 import wandb
-import time
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
-MODEL_FOLDER = "models/"
+MODEL_FOLDER = os.path.dirname(os.getcwd()) + "/ift6758/ift6758/models/"
 
 app = Flask(__name__)
 
@@ -34,7 +34,7 @@ with app.app_context():
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
     model_path = MODEL_FOLDER + "LogisticReg_Distance_Angle.pkl"
     if Path(model_path).exists():
-        with open(model_path,'rb') as file:
+        with open(model_path, 'rb') as file:
             model = pickle.load(file)
         app.logger.info(f"Default model loaded: {model_path}")
     else:
@@ -77,7 +77,7 @@ def download_registry_model():
     
     workspace = json.get("workspace")
     model_name_full = json.get("model")
-    model_name = model_name_full.split("/")[1]  # Need to do this because model name is formatted as IFT6758.2024-B11/LogisticReg_Distance_Angle
+    model_name = model_name_full.split("/")[1] # Need to do tis because format is IFT6758.2024-B11/LogisticReg_Distance_Angle
     version = json.get("version")
     app.logger.info(f"Workpace: {workspace}, Model Name: {model_name}, Version: {version}")
 
@@ -85,9 +85,9 @@ def download_registry_model():
     model_file = Path(model_file)
     if model_file.exists():
         try:
-            with open(model_path,'rb') as file:
-                model = pickle.load(file)            
-                log_message = f"Model {model_file} loaded from disk"
+            with open(model_file, 'rb') as file:
+                model = pickle.load(file)
+            log_message = f"Model {model_file} loaded from disk"
             app.logger.info(log_message)
             return jsonify({"message":log_message})
         
@@ -101,9 +101,10 @@ def download_registry_model():
         model_file_joblib = MODEL_FOLDER + f"{model_name}.joblib"
 
         # Get model from WandB
+        model_file_joblib = MODEL_FOLDER + f"{model_name}.joblib"
         wandb_client = wandb.Api(api_key=os.environ.get("WANDB_API_KEY"))
         artifact = wandb_client.artifact(f"{workspace}/{model_name_full}:{version}")
-        artifact.download(root="models/")
+        artifact.download(root=MODEL_FOLDER)
         
         # Convert .joblib to .pkl
         model = joblib.load(model_file_joblib)
