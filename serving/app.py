@@ -12,13 +12,11 @@ import os
 from pathlib import Path
 import logging
 from flask import Flask, jsonify, request, abort
-import sklearn
 import pandas as pd
+import pickle
 import joblib
 import wandb
-
-import ift6758
-
+import time
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 MODEL_FOLDER = "models/"
@@ -34,9 +32,10 @@ with app.app_context():
     setup logging handler, etc.)
     """
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
-    model_path = MODEL_FOLDER + "LogisticReg_Distance_Angle.joblib"
+    model_path = MODEL_FOLDER + "LogisticReg_Distance_Angle.pkl"
     if Path(model_path).exists():
-        model = joblib.load(model_path)
+        with open(model_path,'rb') as file:
+            model = pickle.load(file)
         app.logger.info(f"Default model loaded: {model_path}")
     else:
         app.logger.warning(f"Default model not found: {model_path}")
@@ -77,16 +76,18 @@ def download_registry_model():
     app.logger.info(json)
     
     workspace = json.get("workspace")
-    model_name = json.get("model")
+    model_name_full = json.get("model")
+    model_name = model_name_full.split("/")[1]  # Need to do this because model name is formatted as IFT6758.2024-B11/LogisticReg_Distance_Angle
     version = json.get("version")
     app.logger.info(f"Workpace: {workspace}, Model Name: {model_name}, Version: {version}")
 
-    model_file = MODEL_FOLDER + f"{model_name}_{version}.joblib"
+    model_file = MODEL_FOLDER + f"{model_name}.pkl"
     model_file = Path(model_file)
     if model_file.exists():
         try:
-            model = joblib.load(model_file)
-            log_message = f"Model {model_file} loaded from disk"
+            with open(model_path,'rb') as file:
+                model = pickle.load(file)            
+                log_message = f"Model {model_file} loaded from disk"
             app.logger.info(log_message)
             return jsonify({"message":log_message})
         
@@ -97,10 +98,17 @@ def download_registry_model():
         
        
     try:
+        model_file_joblib = MODEL_FOLDER + f"{model_name}.joblib"
+
         # Get model from WandB
         wandb_client = wandb.Api(api_key=os.environ.get("WANDB_API_KEY"))
-        artifact = wandb_client.artifact(f"{workspace}/{model_name}:{version}")
+        artifact = wandb_client.artifact(f"{workspace}/{model_name_full}:{version}")
         artifact.download(root="models/")
+        
+        # Convert .joblib to .pkl
+        model = joblib.load(model_file_joblib)
+        with open(model_file, 'wb') as file:
+            pickle.dump(model_file, file)
 
         log_message = f"Model {model_file} downloaded and loaded successfully."
         app.logger.info(log_message)
