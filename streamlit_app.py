@@ -5,6 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+import requests
+import json
+
+
 # Set the title of the app
 st.title("Hockey Game Dashboard")
 
@@ -22,28 +26,59 @@ with st.sidebar:
 
     input_workspace = st.sidebar.selectbox(
     "Workspace?",
-    ("..."))
+    ("ds_b11","..."))
 
     input_model = st.sidebar.selectbox(
     "Model",
-    ("LogisticReg_Distance_Angle", "..."))
+    ("Logistic Regression Distance and Angle", "Logistic Regression Distance Only","..."))
 
     input_version = st.sidebar.selectbox(
     "Version",
-    ("lastest", "..."))
+    ("lastest","v0","..."))
 
     # input_workspace = st.text_input("Workspace", "...")
     # input_model = st.text_input("Model", "...")
     # input_version = st.text_input("lastest", "...")
 
     if st.button("Download model", key="download_model"):
-            with st.spinner("Loading model from CometML..."):
-                time.sleep(1)
-            st.success("Model Loaded!")
 
 
-            # => Brandon : download_registry_model(workspace, model, version)
-            # ? does it return 
+        if input_workspace == 'ds_b11':
+
+            model = None
+            if input_model == 'LogisticReg_Distance_Angle':
+                model =  "IFT6758.2024-B11/LogisticReg_Distance_Angle"
+            if input_model == 'LogisticReg_Distance_Only':
+                model =  "IFT6758.2024-B11/LogisticReg_Distance_Only"
+            else:
+                st.failure("Model not found")
+
+            if model:
+
+                # Define the endpoint URL
+                url = "http://127.0.0.1:8080/download_registry_model"
+
+                # Define the JSON payload to send to the Flask app
+                payload = {
+                    "workspace": input_workspace,
+                    "model": model,
+                    "version": input_version,
+                }
+
+                
+            
+                with st.spinner("Loading model from Wandb..."):
+                    # Send the POST request to the /download_registry_model endpoint
+                    response = requests.post(url, json=payload)
+            
+                if response.status_code == 200:
+                    st.success("Success Model Loaded")
+                else:
+                    st.failure("Something went wrong. Error:", response.status_code, response.json())
+
+        else:
+            st.failure("Workspace not found")
+
 
         
     st.divider()
@@ -58,7 +93,6 @@ col1, col2 = st.columns(2)
 with col1:
     st.write("Selected Model")
     st.write( input_workspace, input_model, input_version)
-    st.write("TODO : check if the workspace exists in the database")
 
 with col2:
     input_workspace = st.text_input("Game ID", placeholder="eg: 2021020329",)
@@ -72,6 +106,11 @@ with col2:
         #     json=json.loads(X.to_json())
         # )
         # print(r.json())
+
+
+        # 1. get update on game from game_client
+        # 2. get predirctions on new events
+        # 3. update dashboard with new data
 
     
 st.divider()
