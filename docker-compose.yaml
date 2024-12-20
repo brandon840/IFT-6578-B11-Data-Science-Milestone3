@@ -14,10 +14,13 @@ services:
       - "8080:8080"  # Replace <SERVING_PORT> with the actual port, e.g., "8080:8080"
     environment:
       DOCKER_ENV_VAR: "${LOCAL_ENV_VAR}"  # Use double quotes and ${} to reference the variable
+      # WANDB_API_KEY: "${WANDB_API_KEY}"  # Explicitly pass the WandB API key
     volumes:
       - ./ift6758:/app/ift6758  # Mount the local ./ift6758 directory to /app/ift6758 in the container
       - ./serving:/app/serving  # Mount the local ./serving directory to /app/serving in the container
     restart: unless-stopped  # Restart the container unless it is explicitly stopped
+    networks:
+      - app-network  # Add to shared network
 
   # When ready to add the Streamlit service, uncomment the following and configure it
   streamlit:
@@ -36,3 +39,10 @@ services:
     volumes:
       - ./streamlit_app.py:/app/streamlit_app.py  # Mount the local streamlit_app.py to /app/streamlit_app.py in the container
     restart: unless-stopped  # Restart the container unless it is explicitly stopped
+    networks:
+      - app-network  # Add to shared network
+
+networks:
+  app-network:
+    name: app-network  # Explicitly set the name
+    driver: bridge

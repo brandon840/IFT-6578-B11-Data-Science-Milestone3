@@ -15,10 +15,16 @@ with st.sidebar:
     version = st.text_input("Version")
 
     if st.button("Download Model"):
-        st.write("Downloading model...")
-        serving_client = ServingClient(ip="127.0.0.1", port=8080)
-        serving_client.download_model(workspace, model, version)
-        st.success("Model downloaded and updated in the serving app!")
+        if not workspace or not model or not version:
+            st.error("Please provide valid inputs for Workspace, Model, and Version")
+        else:
+            try:
+                serving_client = ServingClient(ip="serving", port=8080)
+                response = serving_client.download_registry_model(workspace, model, version)
+                st.success(f"Model downloaded: {response}")
+            except Exception as e:
+                st.error(f"Error downloading model: {e}")
+
 
 # Main container for Game ID input
 with st.container():
@@ -28,7 +34,7 @@ with st.container():
     if st.button("Ping Game"):
         st.write("Fetching game data...")
         try:
-            game_client = GameClient(ip="127.0.0.1", port=8080, game_id=game_id, tracker_file="event_tracker.csv")
+            game_client = GameClient(ip="serving", port=8080, game_id=game_id, tracker_file="event_tracker.csv")
             game_data = game_client.fetch_game_data()
             all_events = game_data.get("liveData", {}).get("plays", {}).get("allPlays", [])
             new_events = game_client.filter_new_events(all_events)
