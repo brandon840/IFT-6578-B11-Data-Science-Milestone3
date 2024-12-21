@@ -1,35 +1,104 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import time
+
 from ift6758.client.game_client import GameClient  # Assuming GameClient is implemented
 from ift6758.client.serving_client import ServingClient  # Assuming ServingClient is implemented
 
-# Title of the app
-st.title("Live NHL Game Dashboard")
+import requests
+import json
 
-# Sidebar inputs
+
+# Set the title of the app
+st.title("Hockey Game Dashboard")
+
+
 with st.sidebar:
-    st.header("Model Configuration")
-    workspace = st.text_input("Workspace")
-    model = st.text_input("Model")
-    version = st.text_input("Version")
+    
+    st.header("Model Selection")
+    st.divider()
 
-    if st.button("Download Model"):
-        if not workspace or not model or not version:
-            st.error("Please provide valid inputs for Workspace, Model, and Version")
+#     add_selectbox = st.sidebar.selectbox(
+#     "How would you like to be contacted?",
+#     ("Email", "Home phone", "Mobile phone")
+# )
+
+
+    input_workspace = st.sidebar.selectbox(
+    "Workspace?",
+    ("ds_b11","..."))
+
+    input_model = st.sidebar.selectbox(
+    "Model",
+    ("Logistic Regression Distance and Angle", "Logistic Regression Distance Only","..."))
+
+    input_version = st.sidebar.selectbox(
+    "Version",
+    ("lastest","v0","..."))
+
+    # input_workspace = st.text_input("Workspace", "...")
+    # input_model = st.text_input("Model", "...")
+    # input_version = st.text_input("lastest", "...")
+
+    if st.button("Download model", key="download_model"):
+
+
+        if input_workspace == 'ds_b11':
+
+            model = None
+            if input_model == 'Logistic Regression Distance and Angle':
+                model =  "IFT6758.2024-B11/LogisticReg_Distance_Angle"
+            if input_model == 'Logistic Regression Distance Only':
+                model =  "IFT6758.2024-B11/LogisticReg_Distance_Only"
+            else:
+                st.failure("Model not found")
+
+            if model:
+
+                # Define the endpoint URL
+                url = "http://127.0.0.1:8080/download_registry_model"
+
+                # Define the JSON payload to send to the Flask app
+                payload = {
+                    "workspace": input_workspace,
+                    "model": model,
+                    "version": input_version,
+                }
+
+                
+            
+                with st.spinner("Loading model from Wandb..."):
+                    # Send the POST request to the /download_registry_model endpoint
+                    response = requests.post(url, json=payload)
+            
+                if response.status_code == 200:
+                    st.success("Success Model Loaded")
+                else:
+                    st.failure("Something went wrong. Error:", response.status_code, response.json())
+
         else:
-            try:
-                serving_client = ServingClient(ip="serving", port=8080)
-                response = serving_client.download_registry_model(workspace, model, version)
-                st.success(f"Model downloaded: {response}")
-            except Exception as e:
-                st.error(f"Error downloading model: {e}")
+            st.failure("Workspace not found")
 
 
-# Main container for Game ID input
-with st.container():
-    st.header("Game Selection")
-    game_id = st.text_input("Enter Game ID (e.g., 2021020329):")
+        
+    st.divider()
+
+
+# ---------------------------
+
+    
+st.divider()
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("Selected Model")
+    st.write( input_workspace, input_model, input_version)
+
+with col2:
+    input_workspace = st.text_input("Game ID", placeholder="eg: 2021020329",)
 
     if st.button("Ping Game"):
         st.write("Fetching game data...")
@@ -80,7 +149,42 @@ with st.container():
         except Exception as e:
             st.error(f"Error fetching game data: {e}")
 
-# Main container for displaying prediction data
-with st.container():
-    st.header("Prediction Data")
-    st.write("The table above shows the new shot events and their predicted goal probabilities.")
+    
+st.divider()
+
+
+
+
+# =============================================================================
+
+
+
+st.header("GameID HomeTeam vs AwayTeam")
+
+container = st.container(border=True)
+
+container.write("Period, Time left in the period, Current score")
+
+col1, col2 = container.columns(2)
+
+container.write("Sum of expected goals (xG) for the entire game so far for both teams (obtained from the game client)")
+
+HomeTeam = col1.container(height=120)
+HomeTeam.title("HomeTeam")
+
+AwayTeam = col2.container(height=120)
+AwayTeam.title("AwayTeam")
+
+
+# =============================================================================
+
+
+st.header("Input Data & Predictions")
+
+container = st.container(border=True)
+container.write("add data frame here")
+
+
+
+
+# # use with docker
