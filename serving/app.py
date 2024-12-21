@@ -15,7 +15,6 @@ from flask import Flask, jsonify, request, abort
 import pandas as pd
 import pickle
 import joblib
-import pickle
 import wandb
 from dotenv import load_dotenv
 
@@ -33,7 +32,7 @@ with app.app_context():
     model_path = MODEL_FOLDER / "LogisticReg_Distance_Angle_new.pkl"
     if model_path.exists():
         with open(str(model_path), 'rb') as file:
-            model = joblib.load(file)
+            model = pickle.load(file)
         app.logger.info(f"Default model loaded: {model_path}")
     else:
         app.logger.warning(f"Default model not found: {model_path}")
