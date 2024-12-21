@@ -29,12 +29,11 @@ class ServingClient:
         """
         try:
             url = self.base_url + "/predict"
-            X = X[self.features]
             payload = X.to_json(orient='records')
-            response = requests.post(url, json=json.loads(payload))
+            response = requests.post(url, json=payload)
             if response.status_code == 200:
                 predictions = response.json().get("predictions", [])
-                return pd.DataFrame(predictions, columns=["prediction"], index=X.index)
+                return pd.DataFrame(predictions, columns=["no_goal_prob","goal_prob"], index=X.index)
             else:
                 logger.error(f"Prediction failed: {response.json()}")
                 response.raise_for_status()
@@ -81,7 +80,6 @@ class ServingClient:
                 "model": model,
                 "version": version,
             }
-            
             response = requests.post(url, json=payload)
             if response.status_code == 200:
                 return response.json()
